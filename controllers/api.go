@@ -21,7 +21,8 @@ func NewAPI(fetcher fetcher, refresher refresher, getter getter) API {
 }
 
 type fetcher interface {
-	Fetch(from, to int) error
+	Generator(from, to int) (<-chan models.Pokemon, error)
+	PokemonGeneratorWriter(pokemons []models.Pokemon)
 }
 
 type refresher interface {
@@ -34,24 +35,27 @@ type getter interface {
 
 //FillCSV fill the local CSV with data from PokeAPI. By default will fetch from id 1 to 10 unless there are other information on the body
 func (api API) FillCSV(c *gin.Context) {
-
 	requestBody := struct {
 		From int `json:"from"`
 		To   int `json:"to"`
 	}{1, 10}
-
 	if err := c.Bind(&requestBody); err != nil {
 		c.Status(http.StatusBadRequest)
 		fmt.Println(err)
 		return
 	}
-
-	if err := api.Fetch(requestBody.From, requestBody.To); err != nil {
+	pokeCh, err := api.Generator(requestBody.From, requestBody.To) // missing to catch errors!! Add certain errors, cancel!
+	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		fmt.Println(err)
 		return
 	}
-
+	pokemons := []models.Pokemon{}
+	for pokemon := range pokeCh {
+		fmt.Println(pokemon)
+		pokemons = append(pokemons, pokemon)
+	}
+	api.PokemonGeneratorWriter(pokemons)
 	c.Status(http.StatusOK)
 }
 

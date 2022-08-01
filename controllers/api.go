@@ -13,6 +13,7 @@ import (
 type API struct {
 	fetcher
 	refresher
+	//fanInCaller
 	getter
 }
 
@@ -27,6 +28,11 @@ type fetcher interface {
 
 type refresher interface {
 	Refresh(context.Context) error
+	FanInCaller(ctx context.Context) error
+}
+
+type fanInCaller interface {
+	FanInCaller(ctx context.Context) error
 }
 
 type getter interface {
@@ -62,10 +68,18 @@ func (api API) FillCSV(c *gin.Context) {
 
 //RefreshCache feeds the csv data and save in redis
 func (api API) RefreshCache(c *gin.Context) {
-	if err := api.Refresh(c); err != nil {
+	err := api.refresher.FanInCaller(c)
+	if err != nil {
 		c.Status(http.StatusInternalServerError)
+		fmt.Println("::ERROR::", err)
 		return
 	}
+
+	// if err := api.Refresh(c); err != nil {
+	// 	c.Status(http.StatusInternalServerError)
+	// 	fmt.Println("::ERROR::", err)
+	// 	return
+	// }
 
 	c.Status(http.StatusOK)
 }

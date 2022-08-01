@@ -31,9 +31,9 @@ type ResponseResult struct {
 	Pokemon models.Pokemon
 }
 
-func (f Fetcher) Generator(from, to int) (<-chan models.Pokemon, error) {
+func (f Fetcher) Generator(done <-chan interface{}, from, to int) (<-chan models.Pokemon, error) {
 	// Generate Channel and WaitGroup
-	ch := make(chan models.Pokemon)
+	resultCh := make(chan models.Pokemon)
 	wg := sync.WaitGroup{}
 
 	for id := from; id <= to; id++ {
@@ -41,26 +41,31 @@ func (f Fetcher) Generator(from, to int) (<-chan models.Pokemon, error) {
 		go func(id int) {
 			defer wg.Done()
 			pokemon, err := f.api.FetchPokemon(id)
+			resp := ResponseResult{Error: err, Pokemon: pokemon}
 			if err != nil {
 				log.Println("Error Fetching Pokemon: ", err)
 				return
 			}
-			fmt.Printf("Pokemon with ID: %v \n: %v", id, pokemon)
+			fmt.Printf("Pokemon with ID: %v \n: %v", id, resp.Pokemon)
 			var flatAbilities []string
-			for _, t := range pokemon.Abilities {
+			for _, t := range resp.Pokemon.Abilities {
 				flatAbilities = append(flatAbilities, t.Ability.URL)
 			}
-			pokemon.FlatAbilityURLs = strings.Join(flatAbilities, "|")
-			ch <- pokemon
+			resp.Pokemon.FlatAbilityURLs = strings.Join(flatAbilities, "|")
+			select {
+			case <-done:
+				return
+			case resultCh <- resp.Pokemon:
+			}
 		}(id)
 	}
 
 	go func() {
 		wg.Wait()
-		close(ch)
+		close(resultCh)
 	}()
 
-	return ch, nil
+	return resultCh, nil
 }
 
 func (f Fetcher) PokemonGeneratorWriter(pokemons []models.Pokemon) {

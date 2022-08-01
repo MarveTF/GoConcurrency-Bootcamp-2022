@@ -21,7 +21,7 @@ func NewAPI(fetcher fetcher, refresher refresher, getter getter) API {
 }
 
 type fetcher interface {
-	Generator(from, to int) (<-chan models.Pokemon, error)
+	Generator(done <-chan interface{}, from, to int) (<-chan models.Pokemon, error)
 	PokemonGeneratorWriter(pokemons []models.Pokemon)
 }
 
@@ -44,7 +44,8 @@ func (api API) FillCSV(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-	pokeCh, err := api.Generator(requestBody.From, requestBody.To) // missing to catch errors!! Add certain errors, cancel!
+	done := make(chan interface{})
+	pokeCh, err := api.Generator(done, requestBody.From, requestBody.To) // missing to catch errors!! Add certain errors, cancel!
 	if err != nil {
 		c.Status(http.StatusInternalServerError)
 		fmt.Println(err)

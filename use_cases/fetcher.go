@@ -42,8 +42,8 @@ func (f Fetcher) Generator(done <-chan interface{}, from, to int) (<-chan models
 			defer wg.Done()
 			pokemon, err := f.api.FetchPokemon(id)
 			resp := ResponseResult{Error: err, Pokemon: pokemon}
-			if err != nil {
-				log.Println("Error Fetching Pokemon: ", err)
+			if resp.Error != nil {
+				log.Println("Error Fetching Pokemon: ", resp.Error)
 				return
 			}
 			fmt.Printf("Pokemon with ID: %v \n: %v", id, resp.Pokemon)

@@ -73,7 +73,25 @@ func (r Refresher) FanIn(ctx context.Context, inputs ...<-chan models.Pokemon) <
 					wg.Done()
 					break
 				}
-				if err := r.SaveFanIn(ctx, pokemon); err != nil {
+				//obtaining the abilities
+				urls := strings.Split(pokemon.FlatAbilityURLs, "|")
+				var abilities []string
+				for _, url := range urls {
+					ability, err := r.FetchAbility(url)
+					if err != nil {
+						fmt.Println("error on ABILITY GATHERING::", err)
+						//return ERR
+					}
+
+					for _, ee := range ability.EffectEntries {
+						abilities = append(abilities, ee.Effect)
+					}
+				}
+
+				pokemon.EffectEntries = abilities
+
+				err := r.SaveFanIn(ctx, pokemon)
+				if err != nil {
 					fmt.Println("error on SAVE FAN IN::", err)
 					//return err
 				}
@@ -89,34 +107,4 @@ func (r Refresher) FanIn(ctx context.Context, inputs ...<-chan models.Pokemon) <
 	}()
 
 	return outputCh
-}
-
-func (r Refresher) Refresh(ctx context.Context) error {
-	pokemons, err := r.Read()
-	if err != nil {
-		return err
-	}
-
-	for i, p := range pokemons {
-		urls := strings.Split(p.FlatAbilityURLs, "|")
-		var abilities []string
-		for _, url := range urls {
-			ability, err := r.FetchAbility(url)
-			if err != nil {
-				return err
-			}
-
-			for _, ee := range ability.EffectEntries {
-				abilities = append(abilities, ee.Effect)
-			}
-		}
-
-		pokemons[i].EffectEntries = abilities
-	}
-
-	if err := r.Save(ctx, pokemons); err != nil {
-		return err
-	}
-
-	return nil
 }

@@ -49,8 +49,8 @@ func (api API) FillCSV(c *gin.Context) {
 	resp := api.Generator(done, requestBody.From, requestBody.To)
 	for r := range resp {
 		if r.Error != nil {
-			c.Status(http.StatusInternalServerError)
 			fmt.Println("Error on Fill CSV: ", r.Error)
+			c.Status(http.StatusInternalServerError)
 			return
 		}
 		fmt.Println(r.Pokemon)
@@ -64,8 +64,8 @@ func (api API) FillCSV(c *gin.Context) {
 func (api API) RefreshCache(c *gin.Context) {
 	err := api.refresher.FanInCaller(c)
 	if err != nil {
+		fmt.Println("Error on refresh Cache::", err)
 		c.Status(http.StatusInternalServerError)
-		fmt.Println("::ERROR::", err)
 		return
 	}
 

@@ -39,25 +39,37 @@ func (r Refresher) FanInCaller(ctx context.Context) error {
 	inputCh := r.GenerateWork(pokemons)
 	queuedCh := r.FanIn(inputCh)
 
-	out1 := r.FanOut(queuedCh)
-	out2 := r.FanOut(queuedCh)
-	out3 := r.FanOut(queuedCh)
+	resp1 := r.FanOut(queuedCh)
+	resp2 := r.FanOut(queuedCh)
+	resp3 := r.FanOut(queuedCh)
 
 	toSavePokemons := []models.Pokemon{}
 	for range pokemons {
 
 		select {
-		case value := <-out1:
-			fmt.Println("Worker1:\n", value)
-			toSavePokemons = append(toSavePokemons, value)
+		case resp := <-resp1:
+			if resp.Error != nil {
+				fmt.Println("Error on fan in caller::", resp.Error)
+				return resp.Error
+			}
+			fmt.Println("Worker1:\n", resp.Pokemon)
+			toSavePokemons = append(toSavePokemons, resp.Pokemon)
 
-		case value := <-out2:
-			fmt.Println("Worker2:\n", value)
-			toSavePokemons = append(toSavePokemons, value)
+		case resp := <-resp2:
+			if resp.Error != nil {
+				fmt.Println("Error on fan in caller::", resp.Error)
+				return resp.Error
+			}
+			fmt.Println("Worker2:\n", resp.Pokemon)
+			toSavePokemons = append(toSavePokemons, resp.Pokemon)
 
-		case value := <-out3:
-			fmt.Println("Worker3:\n", value)
-			toSavePokemons = append(toSavePokemons, value)
+		case resp := <-resp3:
+			if resp.Error != nil {
+				fmt.Println("Error on fan in caller::", resp.Error)
+				return resp.Error
+			}
+			fmt.Println("Worker3:\n", resp.Pokemon)
+			toSavePokemons = append(toSavePokemons, resp.Pokemon)
 		}
 
 		err := r.Save(ctx, toSavePokemons)
@@ -83,7 +95,7 @@ func (fir Refresher) GenerateWork(pokemons []models.Pokemon) <-chan models.Pokem
 	return ch
 }
 
-func (r Refresher) FanIn(inputs ...<-chan models.Pokemon) <-chan models.Pokemon { // confirm channels
+func (r Refresher) FanIn(inputs ...<-chan models.Pokemon) <-chan models.Pokemon {
 	var wg sync.WaitGroup
 	outputCh := make(chan models.Pokemon)
 	wg.Add(len(inputs))
@@ -112,10 +124,10 @@ func (r Refresher) FanIn(inputs ...<-chan models.Pokemon) <-chan models.Pokemon 
 	return outputCh
 }
 
-func (r Refresher) FanOut(in <-chan models.Pokemon) <-chan models.Pokemon { // confirm channels
+func (r Refresher) FanOut(in <-chan models.Pokemon) <-chan models.Response {
 
-	outputCh := make(chan models.Pokemon)
-
+	outputCh := make(chan models.Response)
+	resp := models.Response{}
 	go func(ch <-chan models.Pokemon) {
 		for pokemon := range in {
 			//obtaining the abilities
@@ -123,10 +135,9 @@ func (r Refresher) FanOut(in <-chan models.Pokemon) <-chan models.Pokemon { // c
 			var abilities []string
 			for _, url := range urls {
 				ability, err := r.FetchAbility(url)
-				resp := models.Response{Error: err, Pokemon: pokemon}
+				resp := models.Response{Error: err}
 				if resp.Error != nil {
 					fmt.Println("error on ABILITY GATHERING::", resp.Error)
-					return
 				}
 				for _, ee := range ability.EffectEntries {
 					abilities = append(abilities, ee.Effect)
@@ -134,8 +145,8 @@ func (r Refresher) FanOut(in <-chan models.Pokemon) <-chan models.Pokemon { // c
 			}
 
 			pokemon.EffectEntries = abilities
-
-			outputCh <- pokemon
+			resp = models.Response{Pokemon: pokemon}
+			outputCh <- resp
 		}
 	}(in)
 

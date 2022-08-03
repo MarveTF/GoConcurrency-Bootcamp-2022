@@ -14,7 +14,7 @@ On top of the Image, we have the first endpoint, which is parsing the ids from 1
 On the bottom of the Image, we can see the second endpoint, in which we are using the Fan-in/ Fan-out for the same ids of the first endpoint 1 to 100.
 As we can observe the time using the concurrent pattern is 3 times faster than the linear workaround, this because we are dividing the work into 3 workers, if we add more workers, it could be done faster!
 
-![linear/concurrent time comparison](Images\timeComparisons.PNG)
+![linear/concurrent time comparison](https://github.com/Diegoplas/GoConcurrency-Bootcamp-2022/blob/concurrenct-pokemons/Images/timeComparisons.PNG)
 
 As a conclusion, we can observe that concurrent patterns can improve our run times a lot when we have a lot of work to process or a lot of wait times between works!
  

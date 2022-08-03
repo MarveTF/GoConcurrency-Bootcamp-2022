@@ -1,7 +1,6 @@
 package use_cases
 
 import (
-	"fmt"
 	"log"
 	"strings"
 	"sync"
@@ -46,7 +45,6 @@ func (f Fetcher) Generator(done <-chan interface{}, from, to int) (<-chan models
 				log.Println("Error Fetching Pokemon: ", resp.Error)
 				return
 			}
-			fmt.Printf("Pokemon with ID: %v \n: %v", id, resp.Pokemon)
 			var flatAbilities []string
 			for _, t := range resp.Pokemon.Abilities {
 				flatAbilities = append(flatAbilities, t.Ability.URL)

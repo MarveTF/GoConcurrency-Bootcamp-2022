@@ -9,15 +9,14 @@ Two of the studied patterns were implemented in this repository:
 
 Now, as we can see in the images below, the run times of both of the endpoints that were enhanced using concurrency improved a lot compared to the linear workflow.
 
-On the first Image, we can on top the time of processing 100 ids.
-We can clearle see a massive improvement using a Generator  pattern for parsing the same 100 ids on  seconds instead of the  seconds by doing this in a linear way.
+On top of the Image, we have the first endpoint, which is parsing the ids from 1 to 100. Using a Generator pattern for parsing the same 100 ids on 970 ms instead of the 30.58 seconds by doing this in a linear way. We can clearle see a massive execution time improvement! 
 
- - Fan in - Fan-out: These two patterns can be used together to handle multiple inputs (fan-in) and outputs (fan-out). You can implement these patterns in /refresh-cache to read the csv line by line and hit the abilities endpoint concurrently.
- *(Goal: Process 40 records with three workers in less than 6 seconds*)
- - Pipeline - To make the whole process asynchronous and write to the cache by batches while we are reading the csv file, we can implement the pipeline pattern to do the following steps: asynchronous:
-   Read the csv - Feed the pokemons with abilities - Save into cache. ***(For this pattern is required to process the pokemons in batches instead all at once)***
- *(Goal: Write in cache in real-time by batches while the file is reading)*
+On the bottom of the Image, we can see the second endpoint, in which we are using the Fan-in/ Fan-out for the same ids of the first endpoint 1 to 100.
+As we can observe the time using the concurrent pattern is 3 times faster than the linear workaround, this because we are dividing the work into 3 workers, if we add more workers, it could be done faster!
 
+![linear/concurrent time comparison](Images\timeComparisons.PNG)
+
+As a conclusion, we can observe that concurrent patterns can improve our run times a lot when we have a lot of work to process or a lot of wait times between works!
  
 ## Introduction
  

@@ -123,7 +123,7 @@ func (r Refresher) FanOut(in <-chan models.Pokemon) <-chan models.Pokemon { // c
 			var abilities []string
 			for _, url := range urls {
 				ability, err := r.FetchAbility(url)
-				resp := ResponseResult{Error: err, Pokemon: pokemon}
+				resp := models.Response{Error: err, Pokemon: pokemon}
 				if resp.Error != nil {
 					fmt.Println("error on ABILITY GATHERING::", resp.Error)
 					return

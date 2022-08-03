@@ -15,7 +15,7 @@ type Cache struct {
 }
 
 type fanInSaver interface {
-	SaveFanIn(ctx context.Context, pokemon models.Pokemon) error
+	Save(ctx context.Context, pokemons []models.Pokemon) error
 }
 
 const cacheKey = "pokemons"
@@ -36,13 +36,6 @@ func (c Cache) Save(ctx context.Context, pokemons []models.Pokemon) error {
 	for _, p := range pokemons {
 		hashMap[fmt.Sprintf("%d", p.ID)] = p
 	}
-
-	return c.redis.HSet(ctx, cacheKey, hashMap).Err()
-}
-
-func (c Cache) SaveFanIn(ctx context.Context, pokemon models.Pokemon) error {
-	hashMap := make(map[string]interface{})
-	hashMap[fmt.Sprintf("%d", pokemon.ID)] = pokemon
 
 	return c.redis.HSet(ctx, cacheKey, hashMap).Err()
 }

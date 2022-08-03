@@ -1,5 +1,24 @@
 # GoConcurrency-Bootcamp-2022
  
+ ## Results
+
+Two of the studied patterns were implemented in this repository:
+- A Generator for handling several API requests without losing time waiting for the responses.
+
+- A Fan-In/ Fan-Out for handling multiple csv rows, putting them into a channel and then working with the information of each row using 3 workers, making the process much faster. 
+
+Now, as we can see in the images below, the run times of both of the endpoints that were enhanced using concurrency improved a lot compared to the linear workflow.
+
+On the first Image, we can on top the time of processing 100 ids.
+We can clearle see a massive improvement using a Generator  pattern for parsing the same 100 ids on  seconds instead of the  seconds by doing this in a linear way.
+
+ - Fan in - Fan-out: These two patterns can be used together to handle multiple inputs (fan-in) and outputs (fan-out). You can implement these patterns in /refresh-cache to read the csv line by line and hit the abilities endpoint concurrently.
+ *(Goal: Process 40 records with three workers in less than 6 seconds*)
+ - Pipeline - To make the whole process asynchronous and write to the cache by batches while we are reading the csv file, we can implement the pipeline pattern to do the following steps: asynchronous:
+   Read the csv - Feed the pokemons with abilities - Save into cache. ***(For this pattern is required to process the pokemons in batches instead all at once)***
+ *(Goal: Write in cache in real-time by batches while the file is reading)*
+
+ 
 ## Introduction
  
 Thank you for participating in the GO Concurrency Bootcamp.

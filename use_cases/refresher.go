@@ -15,7 +15,6 @@ type reader interface {
 
 type saver interface {
 	Save(context.Context, []models.Pokemon) error
-	SaveFanIn(ctx context.Context, pokemon models.Pokemon) error
 }
 
 type fetcher interface {
@@ -39,44 +38,33 @@ func (r Refresher) FanInCaller(ctx context.Context) error {
 	}
 	inputCh := r.GenerateWork(pokemons)
 	queuedCh := r.FanIn(inputCh)
-	// for value := range out { // canales de salida del Fan In
-	// 	fmt.Println("VALUE::: ", value)
-	// }
+
 	out1 := r.FanOut(queuedCh)
 	out2 := r.FanOut(queuedCh)
 	out3 := r.FanOut(queuedCh)
 
+	toSavePokemons := []models.Pokemon{}
 	for range pokemons {
+
 		select {
 		case value := <-out1:
-			err = r.SaveFanIn(ctx, value)
-			fmt.Println("")
-			fmt.Println("VALUE OUT1::: ", value)
-			fmt.Println("")
-			if err != nil {
-				fmt.Println("error on SAVE FAN IN OUT 1::", err)
-				return err
-			}
+			fmt.Println("Worker1:\n", value)
+			toSavePokemons = append(toSavePokemons, value)
+
 		case value := <-out2:
-			err = r.SaveFanIn(ctx, value)
-			fmt.Println("")
-			fmt.Println("VALUE OUT2::: ", value)
-			fmt.Println("")
-			if err != nil {
-				fmt.Println("error on SAVE FAN IN OUT 2::", err)
-				return err
-			}
+			fmt.Println("Worker2:\n", value)
+			toSavePokemons = append(toSavePokemons, value)
+
 		case value := <-out3:
-			err = r.SaveFanIn(ctx, value)
-			fmt.Println("")
-			fmt.Println("VALUE OUT3::: ", value)
-			fmt.Println("")
-			if err != nil {
-				fmt.Println("error on SAVE FAN IN OUT 3::", err)
-				return err
-			}
+			fmt.Println("Worker3:\n", value)
+			toSavePokemons = append(toSavePokemons, value)
 		}
 
+		err := r.Save(ctx, toSavePokemons)
+		if err != nil {
+			fmt.Println("error on ABILITY GATHERING::", err)
+			return err
+		}
 	}
 	return nil
 }
@@ -105,7 +93,6 @@ func (r Refresher) FanIn(inputs ...<-chan models.Pokemon) <-chan models.Pokemon 
 		go func(ch <-chan models.Pokemon) {
 			for {
 				pokemon, ok := <-ch
-				//fmt.Println("ÑÑÑÑÑÑÑÑÑÑinput", pokemon.Name)
 				if !ok {
 					wg.Done()
 					break
@@ -132,7 +119,6 @@ func (r Refresher) FanOut(in <-chan models.Pokemon) <-chan models.Pokemon { // c
 	go func(ch <-chan models.Pokemon) {
 		for pokemon := range in {
 			//obtaining the abilities
-			//fmt.Println("FAN OUT POKEMON!!!", pokemon.Name)
 			urls := strings.Split(pokemon.FlatAbilityURLs, "|")
 			var abilities []string
 			for _, url := range urls {

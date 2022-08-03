@@ -13,7 +13,6 @@ import (
 type API struct {
 	fetcher
 	refresher
-	//fanInCaller
 	getter
 }
 

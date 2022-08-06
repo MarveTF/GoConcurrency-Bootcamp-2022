@@ -1,5 +1,23 @@
 # GoConcurrency-Bootcamp-2022
  
+ ## Results
+
+Two of the studied patterns were implemented in this repository:
+- A Generator for handling several API requests without losing time waiting for the responses.
+
+- A Fan-In/ Fan-Out for handling multiple csv rows, putting them into a channel and then working with the information of each row using 3 workers, making the process much faster. 
+
+Now, as we can see in the images below, the run times of both of the endpoints that were enhanced using concurrency improved a lot compared to the linear workflow.
+
+On top of the Image, we have the first endpoint, which is parsing the ids from 1 to 100. Using a Generator pattern for parsing the same 100 ids on 970 ms instead of the 30.58 seconds by doing this in a linear way. We can clearly see a massive execution time improvement! 
+
+On the bottom of the Image, we can see the second endpoint, in which we are using the Fan-in/ Fan-out for the same ids of the first endpoint 1 to 100.
+As we can observe the time using the concurrent pattern is 3 times faster than the linear workaround, this because we are dividing the work into 3 workers, if we add more workers, it could be done faster!
+
+![linear/concurrent time comparison](https://github.com/Diegoplas/GoConcurrency-Bootcamp-2022/blob/concurrenct-pokemons/Images/timeComparisons.PNG)
+
+As a conclusion, we can observe that concurrent patterns can improve our run times a lot when we have a lot of work to process or a lot of wait times between works!
+ 
 ## Introduction
  
 Thank you for participating in the GO Concurrency Bootcamp.

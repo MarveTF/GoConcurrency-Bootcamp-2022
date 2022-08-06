@@ -27,3 +27,8 @@ type Ability struct {
 		Effect string `json:"effect"`
 	} `json:"effect_entries"`
 }
+
+type Response struct {
+	Error   error
+	Pokemon Pokemon
+}

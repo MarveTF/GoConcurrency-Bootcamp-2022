@@ -14,6 +14,10 @@ type Cache struct {
 	redis *redis.Client
 }
 
+type fanInSaver interface {
+	Save(ctx context.Context, pokemons []models.Pokemon) error
+}
+
 const cacheKey = "pokemons"
 
 func NewCache() Cache {
@@ -24,6 +28,8 @@ func NewCache() Cache {
 
 	return Cache{redis.NewClient(options)}
 }
+
+type FanInSaverService struct{}
 
 func (c Cache) Save(ctx context.Context, pokemons []models.Pokemon) error {
 	hashMap := make(map[string]interface{})

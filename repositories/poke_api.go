@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
 
 	"GoConcurrency-Bootcamp-2022/models"
@@ -22,11 +23,14 @@ func (pa PokeAPI) FetchPokemon(id int) (models.Pokemon, error) {
 		SetHeader("Content-Type", "application/json").
 		SetResult(&poke).
 		Post(fmt.Sprintf("%s/pokemon/%d", url, id))
-
 	if err != nil {
+		fmt.Println("error on request!!")
 		return models.Pokemon{}, err
 	}
-
+	if poke.Name == "" {
+		nonExistingData := errors.New("Error obtaining pokemon data.")
+		return models.Pokemon{}, nonExistingData
+	}
 	return poke, nil
 }
 

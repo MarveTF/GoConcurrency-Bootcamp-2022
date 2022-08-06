@@ -25,6 +25,8 @@ func NewFetcher(api api, storage writer) Fetcher {
 	return Fetcher{api, storage}
 }
 
+var pokemons []models.Pokemon
+
 func (f Fetcher) Generator(done <-chan interface{}, from, to int) <-chan models.Response {
 	// Generate Channel and WaitGroup
 	resultCh := make(chan models.Response)
@@ -44,6 +46,7 @@ func (f Fetcher) Generator(done <-chan interface{}, from, to int) <-chan models.
 				flatAbilities = append(flatAbilities, t.Ability.URL)
 			}
 			resp.Pokemon.FlatAbilityURLs = strings.Join(flatAbilities, "|")
+			pokemons = append(pokemons, resp.Pokemon)
 			select {
 			case <-done:
 				return
@@ -55,11 +58,9 @@ func (f Fetcher) Generator(done <-chan interface{}, from, to int) <-chan models.
 	go func() {
 		wg.Wait()
 		close(resultCh)
+		// Waiting for the channel to be closed to write the saved pokemons.
+		f.storage.Write(pokemons)
 	}()
 
 	return resultCh
-}
-
-func (f Fetcher) PokemonGeneratorWriter(pokemons []models.Pokemon) {
-	f.storage.Write(pokemons)
 }

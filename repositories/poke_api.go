@@ -23,7 +23,6 @@ func (pa PokeAPI) FetchPokemon(id int) (models.Pokemon, error) {
 		SetHeader("Content-Type", "application/json").
 		SetResult(&poke).
 		Post(fmt.Sprintf("%s/pokemon/%d", url, id))
-	fmt.Println("pokemon error, empty::", poke)
 	if err != nil {
 		fmt.Println("error on request!!")
 		return models.Pokemon{}, err

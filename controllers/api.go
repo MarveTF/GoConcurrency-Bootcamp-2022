@@ -26,7 +26,7 @@ type fetcher interface {
 }
 
 type refresher interface {
-	FanInCaller(ctx context.Context) error
+	FanOutFanInCaller(ctx context.Context) error
 }
 
 type getter interface {
@@ -62,7 +62,7 @@ func (api API) FillCSV(c *gin.Context) {
 
 //RefreshCache feeds the csv data and save in redis
 func (api API) RefreshCache(c *gin.Context) {
-	err := api.refresher.FanInCaller(c)
+	err := api.refresher.FanOutFanInCaller(c)
 	if err != nil {
 		fmt.Println("Error on refresh Cache::", err)
 		c.Status(http.StatusInternalServerError)
